@@ -14,9 +14,11 @@ Installation
 
 3. In the RabbitMQ Management Web UI add:
 
-   a. A direct exchange called "postgres"
-   b. A queue called "transactions"
-   c. Bind the queue "transactions" to the exchange "postgres" with the routing key "pubish_transactions"
+ 1. A direct exchange called "postgres"
+ 
+ 2. A queue called "transactions"
+
+ 3. Bind the queue "transactions" to the exchange "postgres" with the routing key "pubish_transactions"
 
 4. Modify and then import the server.sql into your primary database
 
