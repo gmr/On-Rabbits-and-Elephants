@@ -6,7 +6,7 @@ Installation
 
 1. Install RabbitMQ and Management Plugin from:
 
- http://www.rabbitmq.com 
+     http://www.rabbitmq.com 
 
 2. In the RabbitMQ Management Web UI add:
 
@@ -24,14 +24,14 @@ Installation
  
 4. Install pg_amqp in to the "server" database. PostgreSQL from:
 
-        https://labs.omniti.com/labs/pgtreats/browser/trunk/contrib/pg_amqp 
+      https://labs.omniti.com/labs/pgtreats/browser/trunk/contrib/pg_amqp 
 
-        or
+      or
    
         easy_install pgxnclient
         pgxnclient install pg_amqp
 
-        then
+      then
  
         psql server < pg_amqp.sql
 
