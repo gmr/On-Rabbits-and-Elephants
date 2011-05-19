@@ -7,7 +7,7 @@ from json import loads
 import sys
 
 
-DSN = "host='localhost' port=5432 user=postgres dbname=consumer_test"
+DSN = "host='localhost' port=5432 user=postgres dbname=client"
 
 INSERT_QUERY = """
     INSERT INTO presentation_consumer_table
