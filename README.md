@@ -28,29 +28,31 @@ Installation
 
         or
    
-        > easy_install pgxnclient
-        > pgxnclient install pg_amqp
+        easy_install pgxnclient
+        pgxnclient install pg_amqp
 
         then
  
-        > psql server < pg_amqp.sql
+        psql server < pg_amqp.sql
 
 5. Import the schemas
 
-        > psql server < server.sql
-        > psql client < client.sql
+        psql server < server.sql
+        psql client < client.sql
 
 6. Do some test events and see if they end up in the "postgres" queue in the RabbitMQ Management Web UI
 
-        > INSERT INTO presentation_example (payload) values ( 'this is a test') RETURNING row_id;
-        > UPDATE presentation_example SET payload = 'Updated test message' WHERE row_id = 1;
-        > DELETE FROM presentation_example WHERE row_id = 1;
+        INSERT INTO presentation_example (payload) values ( 'this is a test') RETURNING row_id;
+        
+        UPDATE presentation_example SET payload = 'Updated test message' WHERE row_id = 1;
+        
+        DELETE FROM presentation_example WHERE row_id = 1;
 
 7. Install client.sql in another database and keep track of connection info.
 
 8. Install pika, the Python RabbitMQ client library:
 
-        > easy_install pika
+        easy_install pika
 
 Use
 ---
