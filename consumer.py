@@ -3,6 +3,7 @@ from pika import SelectConnection, ConnectionParameters
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from json import loads
+import os
 import sys
 
 DSN = "host='localhost' port=5432 dbname=pgbench_client"
@@ -14,6 +15,8 @@ class TriggerConsumer(object):
         self.pgsql = connect(DSN)
         self.pgsql.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.cursor = self.pgsql.cursor()
+        self._queues = dict()
+        self._channels = dict()
 
     def _on_connected(self, connection):
         self.connection = connection
@@ -23,10 +26,30 @@ class TriggerConsumer(object):
         self.connection.channel(self._on_channel_open)
 
     def _on_channel_open(self, channel):
-        queue_name = queues.pop()
-        print "Channel %i opening, subscribing to %s" % \
-                (channel.channel_number, queue_name)
-        channel.basic_consume(self._handle_delivery, queue=queue_name)
+        self._queues[channel.channel_number] = '%s-%s' % (queues.pop(),
+                                                          os.uname()[1])
+        self._channels[channel.channel_number] = channel
+        print "Channel %i opening, declaring %s" % \
+                (channel.channel_number,
+                 self._queues[channel.channel_number])
+
+        channel.queue_declare(queue=self._queues[channel.channel_number],
+                              auto_delete=True,
+                              callback=self._on_queue_declared)
+
+
+    def _on_queue_declared(self, frame):
+        print "%s declared, binding" % self._queues[frame.channel_number]
+        self._channels[frame.channel_number].queue_bind(exchange="pgConf",
+                                 queue=self._queues[frame.channel_number],
+                                 routing_key="public.*",
+                                 callback=self._on_queue_bound)
+
+    def _on_queue_bound(self, frame):
+        print "%s bound, subscribing" % self._queues[frame.channel_number]
+        self._channels[frame.channel_number].basic_consume(self._handle_delivery,
+                                   queue=self._queues[frame.channel_number],
+                                   no_ack=True)
 
     def _handle_delivery(self, channel, method_frame, header_frame, body):
 

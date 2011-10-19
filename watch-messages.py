@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 from pika import SelectConnection, ConnectionParameters
-from psycopg2 import connect
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from json import loads
+import os
 import sys
 
 
@@ -18,13 +17,28 @@ class TriggerConsumer(object):
         self.connection = connection
         self.connection.channel(self._on_channel_open)
 
-
     def _on_channel_open(self, channel):
-        queue_name = 'watch'
-        print "Channel %i opened, subscribing to %s" % \
-              (channel.channel_number, queue_name)
-        channel.basic_consume(self._handle_delivery, queue=queue_name,
-                              no_ack=True)
+        self._channel = channel
+        self._queue_name = 'watch-%s' % os.uname()[1]
+
+        print "Channel %i opened, declaring %s" % \
+              (self._channel.channel_number, self._queue_name)
+
+        self._channel.queue_declare(queue=self._queue_name, auto_delete=True,
+                                    callback=self._on_queue_declared)
+
+    def _on_queue_declared(self, frame):
+        print "%s declared, binding" % self._queue_name
+        self._channel.queue_bind(exchange="pgConf",
+                                 queue=self._queue_name,
+                                 routing_key="public.*",
+                                 callback=self._on_queue_bound)
+
+    def _on_queue_bound(self, frame):
+        print "%s bound, subscribing" % self._queue_name
+        self._channel.basic_consume(self._handle_delivery,
+                                    queue=self._queue_name,
+                                    no_ack=True)
 
     def _handle_delivery(self, channel, method_frame, header_frame, body):
 
