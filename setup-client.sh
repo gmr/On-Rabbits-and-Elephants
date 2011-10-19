@@ -1,4 +1,4 @@
 #!/bin/bash
-createdb pgbench_server
-pgbench -i pgbench_server
+createdb pgbench_client
+pgbench -i pgbench_client
 easy_install pika
