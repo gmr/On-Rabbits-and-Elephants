@@ -26,7 +26,7 @@ class TriggerConsumer(object):
         self.connection.channel(self._on_channel_open)
 
     def _on_channel_open(self, channel):
-        self._queues[channel.channel_number] = '%s-%s' % (queues.pop(),
+        self._queues[channel.channel_number] = '%s:%s' % (queues.pop(),
                                                           os.uname()[1])
         self._channels[channel.channel_number] = channel
         print "Channel %i opening, declaring %s" % \
@@ -39,10 +39,11 @@ class TriggerConsumer(object):
 
 
     def _on_queue_declared(self, frame):
+        table = self._queues[frame.channel_number].split(':')
         print "%s declared, binding" % self._queues[frame.channel_number]
         self._channels[frame.channel_number].queue_bind(exchange="pgConf",
                                  queue=self._queues[frame.channel_number],
-                                 routing_key="public.*",
+                                 routing_key="public.pgbench_%s" % table[0],
                                  callback=self._on_queue_bound)
 
     def _on_queue_bound(self, frame):
@@ -89,9 +90,6 @@ class TriggerConsumer(object):
                 fields.append('%s = %%(%s)s' % (field, field))
             sql = 'DELETE FROM %s WHERE %s' % (method_frame.routing_key, ', '.join(fields))
             self.cursor.execute(sql, message['old'])
-
-        # Ack the message
-        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
 
 if __name__ == '__main__':
